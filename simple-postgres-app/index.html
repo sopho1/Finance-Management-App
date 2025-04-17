@@ -1,0 +1,2347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <style>
+        :root {
+            --primary-color: #4a6bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 60px;
+        }
+
+        /* Dark mode variables */
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --card-bg: #2d2d2d;
+            --border-color: #404040;
+            --hover-color: #3d3d3d;
+            --input-bg: #333333;
+            --input-text: #ffffff;
+            --table-header-bg: #333333;
+            --table-row-hover: #3d3d3d;
+            --secondary-text: #cccccc;
+            --dark-text: #ffffff;
+            --table-text: #ffffff;
+            --modal-bg: #2d2d2d;
+            --modal-border: #404040;
+            --form-bg: #2d2d2d;
+            --form-border: #404040;
+            --form-text: #ffffff;
+            --form-placeholder: #666666;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f5f7fa;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --hover-color: #f8f9fa;
+            --input-bg: #ffffff;
+            --input-text: #333333;
+            --table-header-bg: #f8f9fa;
+            --table-row-hover: #f8f9fa;
+            --secondary-text: #666666;
+            --dark-text: #333333;
+            --table-text: #333333;
+            --modal-bg: #ffffff;
+            --modal-border: #e0e0e0;
+            --form-bg: #ffffff;
+            --form-border: #e0e0e0;
+            --form-text: #333333;
+            --form-placeholder: #999999;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: var(--transition);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: -250px;
+            top: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background-color: var(--card-bg);
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            z-index: 1000;
+            overflow-y: auto;
+            display: block;
+        }
+
+        .sidebar.visible {
+            left: 0;
+        }
+
+        .sidebar.collapsed {
+            left: -250px;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            border-bottom: 1px solid var(--border-color);
+            height: 80px;
+        }
+
+        .sidebar-header .sidebar-toggle {
+            position: relative;
+            left: auto;
+            top: auto;
+            margin-left: auto;
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            left: 20px;
+            top: 20px;
+            z-index: 1001;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            display: none;
+            box-shadow: var(--box-shadow);
+        }
+
+        .sidebar-toggle.visible {
+            display: flex;
+        }
+
+        .sidebar-toggle:hover {
+            background-color: #3a5bef;
+            transform: scale(1.05);
+        }
+
+        .sidebar-toggle i {
+            font-size: 20px;
+        }
+
+        .sidebar.collapsed + .main-content .sidebar-toggle {
+            left: 20px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 20px 0;
+        }
+
+        .sidebar-item {
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .sidebar-item:hover {
+            background-color: var(--hover-color);
+        }
+
+        .sidebar-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-item span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sidebar.collapsed .sidebar-item span {
+            display: none;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            transition: var(--transition);
+            min-height: 100vh;
+        }
+
+        .main-content.expanded {
+            margin-left: var(--sidebar-collapsed-width);
+        }
+
+        .main-content.no-sidebar {
+            margin-left: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .spinner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Header Styles */
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #6a11cb);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
+            position: relative;
+            z-index: 999;
+            width: 100%;
+            margin-left: 0;
+            transition: var(--transition);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), #6a11cb);
+            z-index: -1;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            transition: var(--transition);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            transition: var(--transition);
+            margin-left: 1rem;
+        }
+
+        /* User info styles */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            color: white;
+            transition: var(--transition);
+            margin-right: 1rem;
+            position: relative;
+            right: 0;
+        }
+
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            transition: var(--transition);
+            font-size: 20px;
+            margin-right: 1rem;
+        }
+
+        .notification-bell:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            border: 2px solid var(--primary-color);
+            transition: var(--transition);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin: 0 5px;
+            transition: var(--transition);
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            transition: var(--transition);
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .logout-btn {
+            margin-left: 15px;
+            padding: 8px 16px;
+            font-size: 14px;
+            background-color: #dc3545;
+            border: none;
+            border-radius: var(--border-radius);
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .logout-btn:hover {
+            background-color: #c82333;
+            transform: translateY(-1px);
+        }
+
+        /* Form Styles */
+        .form-container {
+            background: var(--form-bg);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+            border: 1px solid var(--form-border);
+            max-width: 400px;
+            margin: 40px auto;
+            transition: var(--transition);
+        }
+
+        .form-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-size: 24px;
+        }
+
+        .form-container .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-container .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--form-text);
+            font-size: 14px;
+        }
+
+        .form-container .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--form-border);
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            transition: var(--transition);
+            background-color: var(--input-bg);
+            color: var(--form-text);
+        }
+
+        .form-container .btn {
+            width: 100%;
+            margin-top: 8px;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .form-container .btn-secondary {
+            margin-top: 12px;
+        }
+
+        /* Specific styles for signup form */
+        #registerForm .form-container {
+            max-width: 350px;
+        }
+
+        #registerForm .form-group {
+            margin-bottom: 12px;
+        }
+
+        #registerForm .form-control {
+            padding: 8px;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #3a5bef;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background-color: var(--info-color);
+            color: white;
+        }
+
+        .btn-info:hover {
+            background-color: #01579B;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--hover-color);
+            transform: translateY(-2px);
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--table-text);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--table-text);
+        }
+
+        th {
+            background-color: var(--table-header-bg);
+            font-weight: 600;
+            color: var(--table-text);
+        }
+
+        td {
+            background-color: var(--card-bg);
+            color: var(--table-text);
+        }
+
+        tr:hover td {
+            background-color: var(--table-row-hover);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .edit-btn {
+            background-color: var(--info-color);
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .transfer-btn {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: var(--modal-bg);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: modalFadeIn 0.3s ease;
+            border: 1px solid var(--modal-border);
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            color: var(--danger-color);
+        }
+
+        /* Message Styles */
+        .message {
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: messageFadeIn 0.3s ease;
+        }
+
+        @keyframes messageFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .message.hidden {
+            display: none;
+        }
+
+        /* Custom message box styles */
+        .custom-message-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #4caf50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .custom-message-box.fade-out {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        /* Search and Filter Styles */
+        .search-filter-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            font-size: 14px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .filter-box {
+            min-width: 150px;
+        }
+
+        .filter-box select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .filter-box select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* Dark mode specific styles for search and filter boxes */
+        [data-theme="dark"] .search-box input {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .filter-box select {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .filter-box select option {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        /* Transaction filter styles */
+        .transaction-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        #transactionType, #transactionDate {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 150px;
+            transition: var(--transition);
+        }
+
+        #transactionType:focus, #transactionDate:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 107, 255, 0.1);
+        }
+
+        /* Dark mode specific styles */
+        [data-theme="dark"] #transactionType,
+        [data-theme="dark"] #transactionDate {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] #transactionType option {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        [data-theme="dark"] #transactionDate::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+
+        /* Hover states */
+        #transactionType:hover, #transactionDate:hover {
+            border-color: var(--primary-color);
+        }
+
+        /* Placeholder text color */
+        #transactionType option:first-child {
+            color: var(--secondary-text);
+        }
+
+        /* Focus states */
+        #transactionType:focus, #transactionDate:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 107, 255, 0.1);
+        }
+
+        /* Disabled state */
+        #transactionType:disabled, #transactionDate:disabled {
+            background-color: var(--hover-color);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .search-filter-container {
+                flex-direction: column;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+        }
+
+        /* Role Badges */
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .role-admin {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .role-user {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        /* Transaction History */
+        .transaction-history {
+            margin-top: 30px;
+        }
+
+        .transaction-history h3 {
+            color: var(--text-color);
+            margin-bottom: 20px;
+        }
+
+        .transaction-card {
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .transaction-card:hover {
+            transform: translateX(5px);
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-type {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .transaction-date {
+            font-size: 0.9em;
+            color: var(--secondary-text);
+        }
+
+        .transaction-note {
+            font-size: 0.9em;
+            color: var(--secondary-text);
+            margin-top: 5px;
+        }
+
+        .transaction-amount {
+            font-weight: 600;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .amount-positive {
+            color: #28a745;
+        }
+
+        .amount-negative {
+            color: #dc3545;
+        }
+
+        .arrow-up {
+            color: #28a745;
+        }
+
+        .arrow-down {
+            color: #dc3545;
+        }
+
+        .no-transactions {
+            text-align: center;
+            padding: 20px;
+            color: var(--secondary-text);
+            font-style: italic;
+        }
+
+        /* Dark mode styles for transactions */
+        body.dark-mode .transaction-history h3 {
+            color: var(--text-color);
+        }
+
+        body.dark-mode .transaction-card {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .transaction-info {
+            color: var(--text-color);
+        }
+
+        body.dark-mode .transaction-info div:last-child {
+            color: var(--secondary-text);
+        }
+
+        body.dark-mode .transaction-amount {
+            color: var(--text-color);
+        }
+
+        body.dark-mode .amount-positive {
+            color: var(--success-color);
+        }
+
+        body.dark-mode .amount-negative {
+            color: var(--danger-color);
+        }
+
+        /* Notification Bell */
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            transition: var(--transition);
+            font-size: 20px;
+        }
+
+        .notification-bell:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            border: 2px solid var(--primary-color);
+            transition: var(--transition);
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        body.dark-mode .header {
+            background: linear-gradient(135deg, var(--primary-color), #6a11cb);
+        }
+
+        body.dark-mode .header::before {
+            background: linear-gradient(135deg, var(--primary-color), #6a11cb);
+        }
+
+        body.dark-mode .card {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        body.dark-mode .form-group label {
+            color: var(--text-color);
+        }
+
+        body.dark-mode .form-group input {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .form-group input:focus {
+            border-color: var(--primary-color);
+        }
+
+        body.dark-mode .btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        body.dark-mode .btn:hover {
+            background-color: #3a5bef;
+        }
+
+        body.dark-mode .btn-secondary {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .btn-secondary:hover {
+            background-color: var(--hover-color);
+        }
+
+        body.dark-mode .table-container {
+            background-color: var(--card-bg);
+        }
+
+        body.dark-mode table {
+            color: var(--table-text);
+        }
+
+        body.dark-mode th {
+            background-color: var(--table-header-bg);
+            color: var(--table-text);
+        }
+
+        body.dark-mode td {
+            background-color: var(--card-bg);
+            color: var(--table-text);
+        }
+
+        body.dark-mode tr:hover td {
+            background-color: var(--table-row-hover);
+        }
+
+        body.dark-mode .modal {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        body.dark-mode .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .form-control {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .form-control:focus {
+            border-color: var(--primary-color);
+        }
+
+        body.dark-mode .btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        body.dark-mode .btn:hover {
+            background-color: #3a5bef;
+        }
+
+        body.dark-mode .modal-content {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .form-control {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .form-control:focus {
+            border-color: var(--primary-color);
+        }
+
+        body.dark-mode .btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        body.dark-mode .btn:hover {
+            background-color: #3a5bef;
+        }
+
+        body.dark-mode .alert {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        body.dark-mode .alert-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        body.dark-mode .alert-error {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        body.dark-mode .sidebar {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        body.dark-mode .sidebar-menu a {
+            color: var(--text-color);
+        }
+
+        body.dark-mode .sidebar-menu a:hover {
+            background-color: var(--hover-color);
+        }
+
+        body.dark-mode .sidebar-toggle {
+            color: white;
+        }
+
+        body.dark-mode .sidebar-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .user-info {
+            color: white;
+        }
+
+        body.dark-mode .user-info .role {
+            color: #ccc;
+        }
+
+        body.dark-mode .notification-badge {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        body.dark-mode .loading-spinner {
+            border-color: var(--border-color);
+            border-top-color: var(--primary-color);
+        }
+
+        /* Toggle Switch */
+        .toggle-slider {
+            background-color: var(--secondary-color);
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        /* Modal input styles */
+        .modal-content .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            font-size: 14px;
+            transition: var(--transition);
+            margin-top: 5px;
+        }
+
+        .modal-content .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(74, 107, 255, 0.1);
+        }
+
+        .modal-content .form-control:hover {
+            border-color: var(--primary-color);
+        }
+
+        /* Dark mode specific styles for modal inputs */
+        [data-theme="dark"] .modal-content .form-control {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border-color: var(--border-color);
+        }
+
+        [data-theme="dark"] .modal-content .form-control::placeholder {
+            color: var(--secondary-text);
+        }
+
+        [data-theme="dark"] .modal-content select.form-control option {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        /* Disabled state for modal inputs */
+        .modal-content .form-control:disabled {
+            background-color: var(--hover-color);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Textarea specific styles */
+        .modal-content textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* Select specific styles */
+        .modal-content select.form-control {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23666' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 30px;
+        }
+
+        [data-theme="dark"] .modal-content select.form-control {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23fff' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        }
+
+        /* Number input specific styles */
+        .modal-content input[type="number"].form-control {
+            -moz-appearance: textfield;
+        }
+
+        .modal-content input[type="number"].form-control::-webkit-outer-spin-button,
+        .modal-content input[type="number"].form-control::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Date input specific styles */
+        .modal-content input[type="date"].form-control {
+            cursor: pointer;
+        }
+
+        [data-theme="dark"] .modal-content input[type="date"].form-control::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+
+        /* Form group spacing */
+        .modal-content .form-group {
+            margin-bottom: 20px;
+        }
+
+        /* Transfer modal specific spacing */
+        #transferModal .form-group {
+            margin-bottom: 25px;
+        }
+
+        /* Edit modal specific spacing */
+        #editUserModal .form-group {
+            margin-bottom: 22px;
+        }
+
+        /* Delete modal specific spacing */
+        #deleteUserModal .form-group {
+            margin-bottom: 25px;
+        }
+
+        /* Add new styles for expanded header */
+        .main-content.expanded .header {
+            width: calc(100% + var(--sidebar-width));
+            margin-left: calc(-1 * var(--sidebar-width));
+        }
+
+        .main-content.expanded .header-content {
+            max-width: calc(1200px + var(--sidebar-width));
+            padding-left: 1rem;
+            transition: var(--transition);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Toggle Button -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span>Menu</span>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="sidebar-item" onclick="toggleTheme()">
+                <i class="fas fa-moon"></i>
+                <span>Dark Mode</span>
+            </li>
+            <li class="sidebar-item" onclick="window.location.href='settings.html'">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </li>
+            <li class="sidebar-item" onclick="window.location.href='profile.html'">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </li>
+            <li class="sidebar-item" onclick="window.location.href='notifications.html'">
+                <i class="fas fa-bell"></i>
+                <span>Notifications</span>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">User Management System</div>
+                    <div class="user-info" id="userInfo">
+                        <!-- User info will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- Login Form -->
+            <div id="loginForm" class="form-container">
+                <h2>Login</h2>
+                <form id="loginFormElement">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <button type="button" class="btn btn-secondary" onclick="showRegisterForm()">Register</button>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="form-container" style="display: none;">
+                <h2>Register</h2>
+                <form id="registerFormElement">
+                    <div class="form-group">
+                        <label for="registerName">Name</label>
+                        <input type="text" id="registerName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Email</label>
+                        <input type="email" id="registerEmail" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPhone">Phone</label>
+                        <input type="tel" id="registerPhone" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="registerAddress">Address</label>
+                        <textarea id="registerAddress" class="form-control"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Register</button>
+                    <button type="button" class="btn btn-secondary" onclick="showLoginForm()">Back to Login</button>
+                </form>
+            </div>
+
+            <!-- User Management Section -->
+            <div id="userManagement" style="display: none;">
+                <div class="search-filter-container">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search users...">
+                    </div>
+                    <div class="filter-box">
+                        <select id="sortField" class="form-control">
+                            <option value="name">Sort by Name</option>
+                            <option value="email">Sort by Email</option>
+                            <option value="balance">Sort by Balance</option>
+                            <option value="created_at">Sort by Date</option>
+                        </select>
+                    </div>
+                    <div class="filter-box">
+                        <select id="sortOrder" class="form-control">
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Balance</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                                <th>Role</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Users will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Transaction History -->
+                <div class="transaction-history">
+                    <h3>My Transaction History</h3>
+                    <div class="transaction-filters">
+                        <select id="transactionType" class="form-control">
+                            <option value="all">All Transactions</option>
+                            <option value="sent">Sent</option>
+                            <option value="received">Received</option>
+                        </select>
+                        <input type="date" id="transactionDate" class="form-control">
+                    </div>
+                    <div id="transactionsList">
+                        <!-- Transactions will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Display -->
+            <div id="message" class="message hidden"></div>
+        </div>
+
+        <!-- Edit User Modal -->
+        <div id="editUserModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Edit User</h3>
+                    <button class="close-modal" onclick="closeEditModal()">&times;</button>
+                </div>
+                <form id="editUserForm">
+                    <div class="form-group">
+                        <label for="editName">Name</label>
+                        <input type="text" id="editName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmail">Email</label>
+                        <input type="email" id="editEmail" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhone">Phone</label>
+                        <input type="tel" id="editPhone" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="editAddress">Address</label>
+                        <textarea id="editAddress" class="form-control"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editRole">Role</label>
+                        <select id="editRole" class="form-control">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update User</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete User Modal -->
+        <div id="deleteUserModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Delete User</h3>
+                    <button class="close-modal" onclick="closeDeleteModal()">&times;</button>
+                </div>
+                <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+                <div class="form-group">
+                    <label for="deleteConfirmation">Type "DELETE" to confirm</label>
+                    <input type="text" id="deleteConfirmation" class="form-control" placeholder="Type DELETE to confirm">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button onclick="confirmDelete()" class="btn btn-danger" id="confirmDeleteBtn" disabled>Delete</button>
+                    <button onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transfer Modal -->
+        <div id="transferModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Transfer Money</h3>
+                    <button class="close-modal" onclick="closeTransferModal()">&times;</button>
+                </div>
+                <form id="transferForm">
+                    <div class="form-group">
+                        <label for="recipient">Recipient</label>
+                        <select id="recipient" class="form-control" required>
+                            <option value="">Select recipient</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Amount</label>
+                        <input type="number" id="amount" class="form-control" min="0.01" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="transferNote">Note (Optional)</label>
+                        <input type="text" id="transferNote" class="form-control" placeholder="Add a note to your transfer">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Transfer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toastify JS -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        let currentUser = null;
+        let currentSort = 'created_at';
+        let currentOrder = 'desc';
+        let currentSearch = '';
+        let currentPage = 1;
+        let currentUserId = null;
+        let userToDelete = null;
+
+        // Show login form
+        function showLoginForm() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('userManagement').style.display = 'none';
+            document.querySelector('.sidebar').classList.remove('visible');
+            document.querySelector('.sidebar-toggle').classList.remove('visible');
+            document.querySelector('.main-content').classList.add('no-sidebar');
+            currentUser = null;
+            // Force light mode for login page
+            document.body.setAttribute('data-theme', 'light');
+            localStorage.setItem('theme', 'light');
+        }
+
+        // Show register form
+        function showRegisterForm() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('userManagement').style.display = 'none';
+            document.querySelector('.sidebar').classList.remove('visible');
+            document.querySelector('.sidebar-toggle').classList.remove('visible');
+            document.querySelector('.main-content').classList.add('no-sidebar');
+            // Force light mode for register page
+            document.body.setAttribute('data-theme', 'light');
+            localStorage.setItem('theme', 'light');
+        }
+
+        // Show user management
+        function showUserManagement() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('userManagement').style.display = 'block';
+            document.querySelector('.sidebar').classList.add('visible');
+            document.querySelector('.sidebar-toggle').classList.add('visible');
+            document.querySelector('.main-content').classList.remove('no-sidebar');
+            updateUserInfo();
+            loadUsers();
+            loadTransactions();
+        }
+
+        // Update user info in header
+        function updateUserInfo() {
+            const userInfo = document.getElementById('userInfo');
+            if (currentUser) {
+                userInfo.innerHTML = `
+                    <div class="notification-bell" onclick="window.location.href='notifications.html'">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count">0</span>
+                    </div>
+                    <div class="user-avatar">${currentUser.name.charAt(0).toUpperCase()}</div>
+                    <div class="user-details">
+                        <div class="user-name">${currentUser.name}</div>
+                        <div class="user-role">${currentUser.role}</div>
+                    </div>
+                    <button onclick="logout()" class="logout-btn">Logout</button>
+                `;
+                loadNotificationCount();
+            }
+        }
+
+        // Login function
+        async function login(event) {
+            event.preventDefault();
+            showLoading();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:3001/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Login failed');
+                }
+
+                const data = await response.json();
+                currentUser = data.user;
+                localStorage.setItem('token', data.token);
+                showUserManagement();
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage(error.message || 'Login failed', 'error');
+                // Clear any existing token on login failure
+                localStorage.removeItem('token');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Register function
+        async function register(event) {
+            event.preventDefault();
+            showLoading();
+            const user = {
+                name: document.getElementById('registerName').value,
+                email: document.getElementById('registerEmail').value,
+                password: document.getElementById('registerPassword').value,
+                phone: document.getElementById('registerPhone').value,
+                address: document.getElementById('registerAddress').value,
+            };
+
+            try {
+                const response = await fetch('http://localhost:3001/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(user),
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('Registration successful! Please login.', 'success');
+                    showLoginForm();
+                } else {
+                    showMessage(data.error, 'error');
+                }
+            } catch (error) {
+                showMessage('Registration failed', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Logout function
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('token');
+            document.querySelector('.sidebar').classList.remove('visible');
+            document.querySelector('.sidebar-toggle').classList.remove('visible');
+            document.querySelector('.main-content').classList.add('no-sidebar');
+            // Clear user info from navbar
+            document.getElementById('userInfo').innerHTML = '';
+            // Force light mode on logout
+            document.body.setAttribute('data-theme', 'light');
+            localStorage.setItem('theme', 'light');
+            showLoginForm();
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                messageDiv.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Function to show a custom message box
+        function showCustomMessageBox(message) {
+            const messageBox = document.createElement('div');
+            messageBox.className = 'custom-message-box';
+            messageBox.textContent = message;
+
+            document.body.appendChild(messageBox);
+
+            setTimeout(() => {
+                messageBox.classList.add('fade-out');
+                setTimeout(() => {
+                    document.body.removeChild(messageBox);
+                }, 500);
+            }, 2000);
+        }
+
+        // Load users
+        async function loadUsers() {
+            try {
+                console.log('Loading users...');
+                const token = localStorage.getItem('token');
+                console.log('Token:', token ? 'Present' : 'Missing');
+                
+                if (!token) {
+                    showMessage('Please login to view users', 'error');
+                    return;
+                }
+                
+                // Get current search and sort values
+                const search = document.getElementById('searchInput').value;
+                const sortField = document.getElementById('sortField').value;
+                const sortOrder = document.getElementById('sortOrder').value;
+                
+                // Build query parameters
+                const params = new URLSearchParams();
+                if (search) params.append('search', search);
+                if (sortField) params.append('sortField', sortField);
+                if (sortOrder) params.append('sortOrder', sortOrder);
+                
+                const queryString = params.toString();
+                const url = `http://localhost:3001/api/users${queryString ? `?${queryString}` : ''}`;
+                
+                console.log('Fetching users with URL:', url);
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to load users');
+                }
+                
+                const users = await response.json();
+                console.log('Response data:', users);
+                displayUsers(users);
+                loadNotificationCount();
+            } catch (error) {
+                console.error('Error in loadUsers:', error);
+                showMessage(error.message || 'Failed to load users', 'error');
+                // If unauthorized, redirect to login
+                if (error.message.includes('Unauthorized') || error.message.includes('Authentication')) {
+                    showLoginForm();
+                }
+            }
+        }
+
+        function displayUsers(users) {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = ''; // Clear existing content
+            
+            // Convert single user to array if needed
+            const usersArray = Array.isArray(users) ? users : [users];
+            
+            usersArray.forEach(user => {
+                const row = document.createElement('tr');
+                const actionButtons = `
+                    <button onclick="showEditModal(${user.id})" class="btn btn-primary">Edit</button>
+                    <button onclick="showTransferModal(${user.id})" class="btn btn-success">Transfer</button>
+                    ${currentUser.role === 'admin' ? `<button onclick="showDeleteModal(${user.id})" class="btn btn-danger">Delete</button>` : ''}
+                `;
+                
+                row.innerHTML = `
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>$${(parseFloat(user.balance) || 0).toFixed(2)}</td>
+                    <td>${user.phone || '-'}</td>
+                    <td>${user.address || '-'}</td>
+                    <td><span class="role-badge ${user.role}">${user.role}</span></td>
+                    <td class="action-buttons">
+                        ${actionButtons}
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        // Show edit modal
+        async function showEditModal(id) {
+            showLoading();
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:3001/api/users/${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to fetch user details');
+                }
+
+                const user = await response.json();
+                document.getElementById('editName').value = user.name;
+                document.getElementById('editEmail').value = user.email;
+                document.getElementById('editPhone').value = user.phone || '';
+                document.getElementById('editAddress').value = user.address || '';
+                document.getElementById('editRole').value = user.role || 'user';
+                currentUserId = id;
+
+                document.getElementById('editUserModal').style.display = 'flex';
+            } catch (error) {
+                console.error('Error in showEditModal:', error);
+                showMessage(error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editUserModal').style.display = 'none';
+        }
+
+        // Show delete modal
+        function showDeleteModal(id) {
+            userToDelete = id;
+            document.getElementById('deleteUserModal').style.display = 'flex';
+            document.getElementById('deleteConfirmation').value = '';
+            document.getElementById('confirmDeleteBtn').disabled = true;
+        }
+
+        // Close delete modal
+        function closeDeleteModal() {
+            document.getElementById('deleteUserModal').style.display = 'none';
+            userToDelete = null;
+        }
+
+        // Confirm delete
+        async function confirmDelete() {
+            if (!userToDelete) return;
+            showLoading();
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:3001/api/users/${userToDelete}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to delete user');
+                }
+
+                // Show custom message box
+                showCustomMessageBox('Your account has been deleted successfully');
+                setTimeout(() => {
+                    closeDeleteModal();
+                    loadUsers();
+                }, 2000);
+            } catch (error) {
+                console.error('Error in confirmDelete:', error);
+                showMessage(error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Populate recipient dropdown
+        async function populateRecipientDropdown() {
+            const select = document.getElementById('recipient');
+            select.innerHTML = '<option value="">Select recipient</option>';
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3001/api/recipients', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch recipients');
+                }
+                
+                const users = await response.json();
+                
+                users.forEach(user => {
+                    if (user.id !== currentUser.id) {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = `${user.name} (${user.email})`;
+                        select.appendChild(option);
+                    }
+                });
+            } catch (error) {
+                console.error('Error populating recipient dropdown:', error);
+                showMessage('Failed to load recipients', 'error');
+            }
+        }
+
+        // Show transfer modal
+        function showTransferModal(userId) {
+            currentUserId = userId;
+            document.getElementById('transferModal').style.display = 'flex';
+            populateRecipientDropdown();
+        }
+
+        // Close transfer modal
+        function closeTransferModal() {
+            document.getElementById('transferModal').style.display = 'none';
+        }
+
+        // Load transactions
+        async function loadTransactions() {
+            showLoading();
+            try {
+                const token = localStorage.getItem('token');
+                
+                if (!token) {
+                    showMessage('Please login to view transactions', 'error');
+                    return;
+                }
+                
+                const type = document.getElementById('transactionType').value;
+                const date = document.getElementById('transactionDate').value;
+                
+                let url = 'http://localhost:3001/api/transactions/my';
+                const params = new URLSearchParams();
+                
+                if (type !== 'all') {
+                    params.append('type', type);
+                }
+                
+                if (date) {
+                    const formattedDate = date;
+                    params.append('date', formattedDate);
+                    console.log('Filtering transactions for date:', formattedDate);
+                }
+                
+                const queryString = params.toString();
+                if (queryString) {
+                    url += `?${queryString}`;
+                }
+
+                console.log('Fetching transactions with URL:', url);
+
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to load transactions');
+                }
+
+                const transactions = await response.json();
+                console.log('Received transactions:', transactions.length);
+                displayTransactions(transactions);
+                loadNotificationCount();
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                showMessage(error.message || 'Failed to load transactions', 'error');
+                // If unauthorized, redirect to login
+                if (error.message.includes('Unauthorized') || error.message.includes('Authentication')) {
+                    showLoginForm();
+                }
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Display transactions
+        function displayTransactions(transactions) {
+            const container = document.getElementById('transactionsList');
+            container.innerHTML = '';
+
+            if (transactions.length === 0) {
+                const date = document.getElementById('transactionDate').value;
+                const message = date 
+                    ? `No transactions found for ${new Date(date).toLocaleDateString()}`
+                    : 'No transactions found';
+                container.innerHTML = `<p class="no-transactions">${message}</p>`;
+                return;
+            }
+
+            transactions.forEach(transaction => {
+                const card = document.createElement('div');
+                card.className = 'transaction-card';
+                
+                const amount = parseFloat(transaction.amount);
+                const isReceived = transaction.receiver_name === currentUser.name;
+                const otherUser = isReceived ? transaction.sender_name : transaction.receiver_name;
+                
+                // Add border color based on transaction type
+                card.style.borderLeftColor = isReceived ? '#28a745' : '#dc3545';
+                
+                card.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="transaction-type ${isReceived ? 'received' : 'sent'}">
+                            ${isReceived ? 'Received from' : 'Sent to'} ${otherUser}
+                        </div>
+                        <div class="transaction-date">
+                            ${new Date(transaction.created_at).toLocaleString()}
+                        </div>
+                        ${transaction.note ? `<div class="transaction-note">Note: ${transaction.note}</div>` : ''}
+                    </div>
+                    <div class="transaction-amount ${isReceived ? 'amount-positive' : 'amount-negative'}">
+                        ${isReceived ? '<i class="fas fa-arrow-up arrow-up"></i>' : '<i class="fas fa-arrow-down arrow-down"></i>'}
+                        ${isReceived ? '+' : '-'}$${amount.toFixed(2)}
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('loginFormElement').addEventListener('submit', login);
+        document.getElementById('registerFormElement').addEventListener('submit', register);
+        document.getElementById('searchInput').addEventListener('input', debounce((e) => {
+            currentSearch = e.target.value;
+            loadUsers();
+        }, 300));
+        document.getElementById('sortField').addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            loadUsers();
+        });
+        document.getElementById('sortOrder').addEventListener('change', (e) => {
+            currentOrder = e.target.value;
+            loadUsers();
+        });
+        document.getElementById('editUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading();
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:3001/api/users/${currentUserId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: document.getElementById('editName').value,
+                        email: document.getElementById('editEmail').value,
+                        phone: document.getElementById('editPhone').value,
+                        address: document.getElementById('editAddress').value,
+                        role: document.getElementById('editRole').value
+                    }),
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to update user');
+                }
+
+                showMessage('User updated successfully', 'success');
+                closeEditModal();
+                loadUsers();
+            } catch (error) {
+                console.error('Error updating user:', error);
+                showMessage(error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+        document.getElementById('deleteConfirmation').addEventListener('input', (e) => {
+            document.getElementById('confirmDeleteBtn').disabled = e.target.value !== 'DELETE';
+        });
+        document.getElementById('transferForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading();
+            try {
+                const recipientId = document.getElementById('recipient').value;
+                const amount = parseFloat(document.getElementById('amount').value);
+                const note = document.getElementById('transferNote').value;
+                
+                if (!recipientId || !amount || amount <= 0) {
+                    showMessage('Please enter valid transfer details', 'error');
+                    return;
+                }
+
+                if (recipientId === currentUser.id) {
+                    showMessage('You cannot transfer money to yourself', 'error');
+                    return;
+                }
+
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3001/api/transfer', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fromUserId: currentUser.id,
+                        toUserId: recipientId,
+                        amount: amount,
+                        note: note
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Transfer failed');
+                }
+
+                showMessage('Transfer successful', 'success');
+                closeTransferModal();
+                loadUsers();
+                loadTransactions();
+            } catch (error) {
+                console.error('Error processing transfer:', error);
+                showMessage(error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        });
+        document.getElementById('transactionType').addEventListener('change', loadTransactions);
+        document.getElementById('transactionDate').addEventListener('change', (e) => {
+            const selectedDate = e.target.value;
+            if (selectedDate) {
+                loadTransactions();
+            } else {
+                // If no date selected, show all transactions
+                loadTransactions();
+            }
+        });
+
+        // Check for existing token
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetch('http://localhost:3001/api/users/me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Invalid token');
+                }
+            })
+            .then(user => {
+                currentUser = user;
+                showUserManagement();
+            })
+            .catch(error => {
+                console.error('Error checking token:', error);
+                localStorage.removeItem('token');
+                showLoginForm();
+            });
+        } else {
+            showLoginForm();
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('expanded');
+            } else {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('expanded');
+            }
+        }
+
+        // Theme toggle functionality
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            // Update theme
+            body.setAttribute('data-theme', newTheme);
+            
+            // Store theme preference
+            localStorage.setItem('theme', newTheme);
+            
+            // Update icon in sidebar
+            const themeIcon = document.querySelector('.sidebar-item i.fa-moon');
+            if (themeIcon) {
+                themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+        }
+
+        // Initialize theme from localStorage
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+            
+            // Update icon in sidebar
+            const themeIcon = document.querySelector('.sidebar-item i.fa-moon');
+            if (themeIcon) {
+                themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+        }
+
+        // Call initializeTheme when the page loads
+        document.addEventListener('DOMContentLoaded', initializeTheme);
+
+        function showLoading() {
+            document.getElementById('loadingSpinner').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        // Add debounce function to prevent too many API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Add this function to load notifications count
+        async function loadNotificationCount() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+
+                const response = await fetch('http://localhost:3001/api/notifications', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const notifications = await response.json();
+                    const unreadCount = notifications.filter(n => !n.is_read).length;
+                    const countElement = document.querySelector('.notification-count');
+                    if (countElement) {
+                        countElement.textContent = unreadCount;
+                        countElement.style.display = unreadCount > 0 ? 'flex' : 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading notification count:', error);
+            }
+        }
+    </script>
+</body>
+</html>

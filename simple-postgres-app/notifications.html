@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4a6bff;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --bg-color: #f5f7fa;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --hover-color: #f8f9fa;
+            --input-bg: #ffffff;
+            --input-text: #333333;
+            --secondary-text: #666666;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --card-bg: #2d2d2d;
+            --border-color: #404040;
+            --hover-color: #3d3d3d;
+            --input-bg: #333333;
+            --input-text: #ffffff;
+            --secondary-text: #cccccc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: var(--transition);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #6a11cb);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .back-link {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #3a5bef;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+
+        .notification-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 15px;
+            transition: var(--transition);
+        }
+
+        .notification-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .notification-card.unread {
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .notification-sender {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .notification-date {
+            color: var(--secondary-color);
+            font-size: 0.9em;
+        }
+
+        .notification-message {
+            margin-bottom: 10px;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .send-notification-form {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .loading-spinner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Dark mode styles */
+        body[data-theme="dark"] .notification-card {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        body[data-theme="dark"] .notification-sender {
+            color: var(--primary-color);
+        }
+
+        body[data-theme="dark"] .notification-date {
+            color: var(--secondary-text);
+        }
+
+        body[data-theme="dark"] .send-notification-form {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        body[data-theme="dark"] .form-control {
+            background-color: var(--input-bg);
+            color: var(--input-text);
+            border-color: var(--border-color);
+        }
+
+        body[data-theme="dark"] .form-control:focus {
+            border-color: var(--primary-color);
+        }
+
+        body[data-theme="dark"] .message.success {
+            background-color: #1e4620;
+            color: #d4edda;
+            border: 1px solid #2d5a30;
+        }
+
+        body[data-theme="dark"] .message.error {
+            background-color: #4a1c1c;
+            color: #f8d7da;
+            border: 1px solid #5a2323;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+                <div class="logo">Notifications</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Send Notification Form (Admin Only) -->
+        <div id="sendNotificationForm" class="send-notification-form" style="display: none;">
+            <h2>Send Notification</h2>
+            <form id="notificationForm">
+                <div class="form-group">
+                    <label for="recipient">Recipient</label>
+                    <select id="recipient" class="form-control" required>
+                        <option value="">Select recipient</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" class="form-control" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Send Notification</button>
+            </form>
+        </div>
+
+        <!-- Notifications List -->
+        <div id="notificationsList">
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+            </div>
+            <!-- Notifications will be populated here -->
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        // Check authentication
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3001/api/users/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    if (error.error === 'Invalid token' || error.error === 'Authentication required') {
+                        localStorage.removeItem('token');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    throw new Error(error.error || 'Authentication failed');
+                }
+
+                currentUser = await response.json();
+                loadNotifications();
+                if (currentUser.role === 'admin') {
+                    document.getElementById('sendNotificationForm').style.display = 'block';
+                    populateRecipients();
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                showMessage('Failed to load notifications. Please try again.', 'error');
+            }
+        }
+
+        // Update user info in header
+        function updateUserInfo() {
+            const userInfo = document.getElementById('userInfo');
+            if (currentUser) {
+                userInfo.innerHTML = `
+                    <div>${currentUser.name}</div>
+                    <div style="font-size: 12px; color: #ccc;">${currentUser.role}</div>
+                    <button onclick="logout()" class="btn btn-danger">Logout</button>
+                `;
+            }
+        }
+
+        // Load notifications
+        async function loadNotifications() {
+            showLoading();
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3001/api/notifications', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load notifications');
+                }
+
+                const notifications = await response.json();
+                displayNotifications(notifications);
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                showMessage('Failed to load notifications', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // Display notifications
+        function displayNotifications(notifications) {
+            const container = document.getElementById('notificationsList');
+            container.innerHTML = '';
+
+            if (notifications.length === 0) {
+                container.innerHTML = '<p>No notifications found</p>';
+                return;
+            }
+
+            notifications.forEach(notification => {
+                const card = document.createElement('div');
+                card.className = `notification-card ${notification.is_read ? '' : 'unread'}`;
+                card.innerHTML = `
+                    <div class="notification-header">
+                        <div class="notification-sender">From: ${notification.sender_name}</div>
+                        <div class="notification-date">${new Date(notification.created_at).toLocaleString()}</div>
+                    </div>
+                    <div class="notification-message">${notification.message}</div>
+                    <div class="notification-actions">
+                        ${!notification.is_read ? `
+                            <button onclick="markAsRead(${notification.id})" class="btn btn-primary">
+                                Mark as Read
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Populate recipients dropdown (admin only)
+        async function populateRecipients() {
+            const select = document.getElementById('recipient');
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3001/api/users', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load users');
+                }
+
+                const users = await response.json();
+                select.innerHTML = '<option value="">Select recipient</option>';
+                
+                users.forEach(user => {
+                    if (user.id !== currentUser.id) {
+                        const option = document.createElement('option');
+                        option.value = user.id;
+                        option.textContent = `${user.name} (${user.email})`;
+                        select.appendChild(option);
+                    }
+                });
+            } catch (error) {
+                console.error('Error populating recipients:', error);
+                showMessage('Failed to load recipients', 'error');
+            }
+        }
+
+        // Mark notification as read
+        async function markAsRead(notificationId) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`http://localhost:3001/api/notifications/${notificationId}/read`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to mark notification as read');
+                }
+
+                loadNotifications();
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+                showMessage('Failed to mark notification as read', 'error');
+            }
+        }
+
+        // Send notification
+        async function sendNotification(event) {
+            event.preventDefault();
+            const recipientId = document.getElementById('recipient').value;
+            const message = document.getElementById('message').value;
+
+            if (!recipientId || !message) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3001/api/notifications', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ receiver_id: recipientId, message })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to send notification');
+                }
+
+                showMessage('Notification sent successfully', 'success');
+                document.getElementById('notificationForm').reset();
+            } catch (error) {
+                console.error('Error sending notification:', error);
+                showMessage('Failed to send notification', 'error');
+            }
+        }
+
+        // Show loading spinner
+        function showLoading() {
+            document.getElementById('loadingSpinner').style.display = 'flex';
+        }
+
+        // Hide loading spinner
+        function hideLoading() {
+            document.getElementById('loadingSpinner').style.display = 'none';
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+            document.querySelector('.container').insertBefore(messageDiv, document.querySelector('.container').firstChild);
+            messageDiv.style.display = 'block';
+
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+                messageDiv.remove();
+            }, 3000);
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        }
+
+        // Event listeners
+        document.getElementById('notificationForm').addEventListener('submit', sendNotification);
+
+        // Initialize
+        checkAuth();
+
+        // Initialize theme from localStorage
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.setAttribute('data-theme', savedTheme);
+        }
+
+        // Call initializeTheme when the page loads
+        document.addEventListener('DOMContentLoaded', initializeTheme);
+    </script>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
+</body>
+</html>
