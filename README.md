@@ -61,15 +61,15 @@ A modern web application for managing users, transactions, and notifications wit
 ## Installation
 
 1. Clone the repository:
-```bash
+`bash
 git clone <repository-url>
 cd simple-postgres-app
-```
+``
 
 2. Install dependencies:
-```bash
+`bash
 npm install
-```
+``
 
 3. Set up the database:
 - Create a PostgreSQL database
@@ -77,14 +77,14 @@ npm install
 - The application will automatically use these environment variables for database connection
 
 4. Create necessary tables:
-```bash
+`bash
 npm run setup
-```
+``
 
 5. Start the server:
-```bash
+`bash
 npm start
-```
+``
 
 The application will be available at `http://localhost:3001`
 
@@ -92,14 +92,14 @@ The application will be available at `http://localhost:3001`
 
 Create a `.env` file in the root directory with the following variables:
 
-```
+`
 JWT_SECRET=your_jwt_secret
 DB_USER=your_db_user
 DB_PASSWORD=your_db_password
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=your_db_name
-```
+``
 
 ## API Endpoints
 
@@ -144,10 +144,6 @@ DB_NAME=your_db_name
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Acknowledgments
 
